@@ -1,5 +1,4 @@
-﻿ng.Dimension = function (options) {
-    this.outerHeight = null;
-    this.outerWidth = null;
-    $.extend(this, options);
+﻿ng.Dimension = function (height, width) {
+    this.outerHeight = height;
+    this.outerWidth = width;
 };

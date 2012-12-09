@@ -60,6 +60,7 @@ function userController($scope) {
         showGroupPanel: false,
         showColumnMenu: true,
         enablePaging: true,
+		showGroupPanel: true,
 		sortInfo: {field: 'birthday', direction: 'asc'},
 		enableRowReordering: true,
         maintainColumnRatios: false,

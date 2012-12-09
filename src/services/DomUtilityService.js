@@ -7,62 +7,47 @@
 /// <reference path="../classes/range.js"/>
 ngGridServices.factory('DomUtilityService', function () {
     var domUtilityService = {};
-    var getWidths = function () {
-        var $testContainer = $('<div></div>');
-        $testContainer.appendTo('body');
-        // 1. Run all the following measurements on startup!
-        //measure Scroll Bars
-        $testContainer.height(100).width(100).css("position", "absolute").css("overflow", "scroll");
-        $testContainer.append('<div style="height: 400px; width: 400px;"></div>');
-        domUtilityService.ScrollH = ($testContainer.height() - $testContainer[0].clientHeight);
-        domUtilityService.ScrollW = ($testContainer.width() - $testContainer[0].clientWidth);
-        $testContainer.empty();
-        //clear styles
-        $testContainer.attr('style', '');
-        //measure letter sizes using a pretty typical font size and fat font-family
-        $testContainer.append('<span style="font-family: Verdana, Helvetica, Sans-Serif; font-size: 14px;"><strong>M</strong></span>');
-        domUtilityService.LetterW = $testContainer.children().first().width();
-        $testContainer.remove();
-    };
     domUtilityService.AssignGridContainers = function (rootEl, grid) {
-        grid.$root = $(rootEl);
+        grid.$root = rootEl;
         //Headers
-        grid.$topPanel = grid.$root.find(".ngTopPanel");
-        grid.$groupPanel = grid.$root.find(".ngGroupPanel");
-        grid.$headerContainer = grid.$topPanel.find(".ngHeaderContainer");
-        grid.$headerScroller = grid.$topPanel.find(".ngHeaderScroller");
+        grid.$topPanel = angular.element(grid.$root.children()[0]);
+        grid.$groupPanel = angular.element(grid.$topPanel.children()[0]);
+        grid.$headerContainer = angular.element(grid.$topPanel.children()[1]);
+        grid.$headerScroller = angular.element(grid.$headerContainer.children()[0]);;
         grid.$headers = grid.$headerScroller.children();
         //Viewport
-        grid.$viewport = grid.$root.find(".ngViewport");
+        grid.$viewport = angular.element(grid.$root.children()[1]);
         //Canvas
-        grid.$canvas = grid.$viewport.find(".ngCanvas");
+        grid.$canvas = angular.element(grid.$viewport.children()[0]);;
         //Footers
-        grid.$footerPanel = grid.$root.find(".ngFooterPanel");
+        grid.$footerPanel = angular.element(grid.$root.children()[2]);
         domUtilityService.UpdateGridLayout(grid);
     };
 	domUtilityService.UpdateGridLayout = function(grid) {
 		// first check to see if the grid is hidden... if it is, we will screw a bunch of things up by re-sizing
-		if (grid.$root.parents(":hidden").length > 0) {
+		if (grid.$root.parent()[0].style.display == "none") {
 			return;
 		}
 		//catch this so we can return the viewer to their original scroll after the resize!
-		var scrollTop = grid.$viewport.scrollTop();
-		grid.elementDims.rootMaxW = grid.$root.width();
-		grid.elementDims.rootMaxH = grid.$root.height();
+		var scrollTop = grid.$viewport.scrollTop;
+		grid.elementDims.rootMaxW = grid.$root[0].offsetWidth;
+		grid.elementDims.rootMaxH = grid.$root[0].offsetHeight;
 		//check to see if anything has changed
 		grid.refreshDomSizes();
 		grid.adjustScrollTop(scrollTop, true); //ensure that the user stays scrolled where they were
 	};
-    domUtilityService.BuildStyles = function($scope,grid,apply) {
+    domUtilityService.BuildStyles = function($scope, grid, apply) {
         var rowHeight = grid.config.rowHeight,
-            $style = grid.$styleSheet,
             gridId = grid.gridId,
             css,
             cols = $scope.visibleColumns(),
             sumWidth = 0;
         
-        if (!$style) $style = $("<style type='text/css' rel='stylesheet' />").appendTo($('html'));
-        $style.empty();
+        if (!grid.$styleSheet) {
+            grid.$styleSheet = angular.element("<style type='text/css' rel='stylesheet' />")
+            angular.element(window.document.body).append(grid.$styleSheet);
+        }
+        grid.$styleSheet.html('');
         var trw = $scope.totalRowWidth();
         css = "." + gridId + " .ngCanvas { width: " + trw + "px; }"+
               "." + gridId + " .ngRow { width: " + trw + "px; }" +
@@ -76,11 +61,10 @@ ngGridServices.factory('DomUtilityService', function () {
             sumWidth += col.width;
         });
         if (ng.utils.isIe) { // IE
-            $style[0].styleSheet.cssText = css;
+            grid.$styleSheet[0].styleSheet.cssText = css;
         } else {
-            $style[0].appendChild(document.createTextNode(css));
+            grid.$styleSheet.append(document.createTextNode(css));
         }
-        grid.$styleSheet = $style;
         if (apply) domUtilityService.apply($scope);
     };
 	
@@ -92,6 +76,5 @@ ngGridServices.factory('DomUtilityService', function () {
     domUtilityService.ScrollH = 17; // default in IE, Chrome, & most browsers
     domUtilityService.ScrollW = 17; // default in IE, Chrome, & most browsers
     domUtilityService.LetterW = 10;
-    getWidths();
 	return domUtilityService;
 });

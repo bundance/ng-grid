@@ -41,7 +41,7 @@ if (!Array.prototype.filter)
   };
 }
 ng.utils = {
-    visualLength: function (node) {
+    visualLength: function(node) {
         var elem = document.getElementById('testDataLength');
         if (!elem) {
             elem = document.createElement('SPAN');
@@ -53,14 +53,14 @@ ng.utils = {
         elem.innerHTML = $(node).text();
         return elem.offsetWidth;
     },
-    forIn: function (obj, action) {
-         for (var prop in obj) {
-            if(obj.hasOwnProperty(prop)){
+    forIn: function(obj, action) {
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
                 action(obj[prop], prop);
             }
         }
     },
-    evalProperty: function (entity, path) {
+    evalProperty: function(entity, path) {
         var propPath = path.split('.'), i = 0;
         var tempProp = entity[propPath[i++]], links = propPath.length;
         while (tempProp && i < links) {
@@ -68,17 +68,17 @@ ng.utils = {
         }
         return tempProp;
     },
-    endsWith: function (str, suffix) {
+    endsWith: function(str, suffix) {
         if (!str || !suffix || typeof str != "string") return false;
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     },
-    isNullOrUndefined: function (obj) {
+    isNullOrUndefined: function(obj) {
         if (obj === undefined || obj === null) return true;
         return false;
     },
     getElementsByClassName: function(cl) {
         var retnode = [];
-        var myclass = new RegExp('\\b'+cl+'\\b');
+        var myclass = new RegExp('\\b' + cl + '\\b');
         var elem = document.getElementsByTagName('*');
         for (var i = 0; i < elem.length; i++) {
             var classes = elem[i].className;
@@ -86,37 +86,69 @@ ng.utils = {
         }
         return retnode;
     },
-    getTemplatePromise: function (t) {
+    getTemplatePromise: function(t) {
         return ng.$http.get(t);
     },
-    newId: (function () {
+    newId: (function() {
         var seedId = new Date().getTime();
-        return function () {
+        return function() {
             return seedId += 1;
         };
     })(),
-    
+    find: function(elem, selector) {
+        var found = undefined;
+        var walk = function(e) {
+            while (e && !found) {
+                if (e.className.indexOf(selector) == -1) {
+                    angular.forEach(e.childNodes, function(child) {
+                        walk(child, selector);
+                    });
+                } else {
+                    found = e;
+                }
+            }
+        };
+        walk(elem);
+        return found;
+    },
+    closest: function(elem, className) {
+        var temp = elem;
+        while (temp && temp.parentNode.className && temp.parentNode.className.indexOf(className) == -1 && temp.tagName != "HTML") {
+            temp = temp.parentNode;
+        }
+        return temp.tagName != "HTML" ? temp : undefined;
+    },
+    extend: function(dst) {
+        angular.forEach(arguments, function(obj) {
+            if (obj !== dst) {
+                angular.forEach(obj, function(value, key) {
+                    dst[key] = value;
+                });
+            }
+        });
+        return dst;
+    },
+    copyArray: function(obj) {
+        if (Object.prototype.toString.call(obj) === '[object Array]') {
+            var out = [], i = 0, len = obj.length;
+            for (; i < len; i++) {
+                out[i] = arguments.callee(obj[i]);
+            }
+            return out;
+        }
+        return obj;
+    },
     // we copy KO's ie detection here bc it isn't exported in the min versions of KO
     // Detect IE versions for workarounds (uses IE conditionals, not UA string, for robustness) 
-    ieVersion: (function () {
+    ieVersion: (function() {
         var version = 3, div = document.createElement('div'), iElems = div.getElementsByTagName('i');
         // Keep constructing conditional HTML blocks until we hit one that resolves to an empty fragment
-        while (
-            div.innerHTML = '<!--[if gt IE ' + (++version) + ']><i></i><![endif]-->',
-            iElems[0]
-        );
+        while (div.innerHTML = '<!--[if gt IE ' + (++version) + ']><i></i><![endif]-->',
+        iElems[0]) ;
         return version > 4 ? version : undefined;
     })()
-};
+}
 
-$.extend(ng.utils, {
-    isIe6: (function(){ 
-        return ng.utils.ieVersion === 6;
-    })(),
-    isIe7: (function(){ 
-        return ng.utils.ieVersion === 7;
-    }    )(),
-    isIe: (function () { 
-        return ng.utils.ieVersion !== undefined; 
-    })()
-}); 
+ng.utils.isIe = (function() {
+    return ng.utils.ieVersion !== undefined;
+})();

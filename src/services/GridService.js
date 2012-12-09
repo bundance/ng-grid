@@ -40,16 +40,15 @@ ngGridServices.factory('GridService', ['DomUtilityService', function (domUtility
     };
     
     gridService.AssignGridEventHandlers = function ($scope, grid) {
-        grid.$viewport.scroll(function (e) {
+        grid.$viewport[0].onscroll = function (e) {
             var scrollLeft = e.target.scrollLeft,
             scrollTop = e.target.scrollTop;
             grid.adjustScrollLeft(scrollLeft);
             grid.adjustScrollTop(scrollTop);
-        });
-        grid.$viewport.off('keydown');
-        grid.$viewport.on('keydown', function (e) {
+        };
+        grid.$viewport[0].onkeydown = function (e) {
             return ng.moveSelectionHandler($scope, grid, e);
-        });
+        };
         //Chrome and firefox both need a tab index so the grid can recieve focus.
         //need to give the grid a tabindex if it doesn't already have one so
         //we'll just give it a tab index of the corresponding gridcache index 
@@ -60,12 +59,12 @@ ngGridServices.factory('GridService', ['DomUtilityService', function (domUtility
         } else {
             grid.$viewport.attr('tabIndex', grid.config.tabIndex);
         }
-        $(window).resize(function () {
+        window.onresize = function () {
             domUtilityService.UpdateGridLayout(grid);
             if (grid.config.maintainColumnRatios) {
                 grid.configureColumnWidths();
             }
-		});
+		};
     };
 	
     return gridService;

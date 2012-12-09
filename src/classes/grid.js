@@ -57,7 +57,7 @@ ng.Grid = function ($scope, options, sortService, domUtilityService) {
     
     self.maxCanvasHt = 0;
     //self vars
-    self.config = $.extend(defaults, options);
+    self.config = ng.utils.extend(defaults, options);
     if (typeof options.columnDefs == "string") {
         self.config.columnDefs = $scope.$eval(options.columnDefs);
     }
@@ -76,7 +76,7 @@ ng.Grid = function ($scope, options, sortService, domUtilityService) {
     self.lateBindColumns = false;
     self.filteredData = [];
     if (typeof self.config.data == "object") {
-        self.sortedData = $.extend(true, [], self.config.data); // we cannot watch for updates if you don't pass the string name
+        self.sortedData = ng.utils.ng.utils.copyArray(self.config.data); // we cannot watch for updates if you don't pass the string name
     }
     self.lastSortedColumn = undefined;
     self.calcMaxCanvasHeight = function() {
@@ -306,7 +306,7 @@ ng.Grid = function ($scope, options, sortService, domUtilityService) {
     };
     self.adjustScrollLeft = function (scrollLeft) {
         if (self.$headerContainer) {
-            self.$headerContainer.scrollLeft(scrollLeft);
+            self.$headerContainer.scrollLeft += scrollLeft;
         }
     };
     self.resizeOnData = function (col) {

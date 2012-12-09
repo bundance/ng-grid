@@ -8,7 +8,7 @@ ngGridReorderable = function (options) {
         enableRow: true
     };
     var self = this;
-    self.config = $.extend(defaults, options);
+    self.config = ng.utils.extend(defaults, options);
     self.$scope = null;
     self.myGrid = null;
 

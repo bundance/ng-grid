@@ -14,10 +14,16 @@
 			});
 		    $scope.$evalAsync(self.setDraggables);
 		} else {
-			grid.$groupPanel.on('mousedown', self.onGroupMouseDown).on('dragover', self.dragOver).on('drop', self.onGroupDrop);
-			grid.$headerScroller.on('mousedown', self.onHeaderMouseDown).on('dragover', self.dragOver).on('drop', self.onHeaderDrop);
+		    grid.$groupPanel[0].onmousedown = self.onGroupMouseDown;
+		    grid.$groupPanel[0].ondragover = self.dragOver;
+		    grid.$groupPanel[0].ondrop = self.onGroupDrop;
+		    grid.$headerScroller[0].onmousedown = self.onHeaderMouseDown;
+		    grid.$headerScroller[0].ondragover = self.dragOver;
+		    grid.$headerScroller[0].ondrop = self.onHeaderDrop;
 			if (grid.config.enableRowReordering) {
-				grid.$viewport.on('mousedown', self.onRowMouseDown).on('dragover', self.dragOver).on('drop', self.onRowDrop);
+			    grid.$viewport[0].onmousedown = self.onRowMouseDown;
+			    grid.$viewport[0].ondragover = self.dragOver;
+			    grid.$viewport[0].ondro = self.onRowDrop;
 			}
 		}
 		$scope.$watch('columns', self.setDraggables, true);	
@@ -28,8 +34,10 @@
     };		
 	//For JQueryUI
 	self.setDraggables = function(){
-		if(!grid.config.jqueryUIDraggable){	
-			grid.$root.find('.ngHeaderSortColumn').attr('draggable', 'true').on('dragstart', self.onHeaderDragStart).on('dragend', self.onHeaderDragStop);
+	    if (!grid.config.jqueryUIDraggable) {
+	        angular.forEach(grid.$root.children(), function(elem) {
+	            elem.draggable = true;
+	        });
 		} else {
 			grid.$root.find('.ngHeaderSortColumn').draggable({
 				helper: 'clone',
@@ -46,23 +54,10 @@
 			});
 		}
 	};  
-    self.onGroupDragStart = function () {
-        // color the header so we know what we are moving
-        if (self.groupToMove) {
-            self.groupToMove.header.css('background-color', 'rgb(255, 255, 204)');
-        }
-    };	
-    
-    self.onGroupDragStop = function () {
-        // Set the column to move header color back to normal
-        if (self.groupToMove) {
-            self.groupToMove.header.css('background-color', 'rgb(247,247,247)');
-        }
-    };
     self.onGroupMouseDown = function(event) {
-        var groupItem = $(event.target);
+        var groupItem = event.target;
         // Get the scope from the header container
-		if(groupItem[0].className != 'ngRemoveGroup'){
+		if(groupItem.className != 'ngRemoveGroup'){
 			var groupItemScope = angular.element(groupItem).scope();
 			if (groupItemScope) {
 				// set draggable events
@@ -84,8 +79,8 @@
         if (self.groupToMove) {
 			self.onGroupDragStop();
             // Get the closest header to where we dropped
-            groupContainer = $(event.target).closest('.ngGroupElement'); // Get the scope from the header.
-            if (groupContainer.context.className == 'ngGroupPanel') {
+			groupContainer = ng.utils.closest(event.target, 'ngGroupPanel'); // Get the scope from the header.
+            if (groupContainer) {
                 $scope.configGroups.splice(self.groupToMove.index, 1);
                 $scope.configGroups.push(self.groupToMove.groupName);
             } else {
@@ -101,11 +96,10 @@
             }			
 			self.groupToMove = undefined;
 			grid.fixGroupIndexes();	
-        } else {	
-			self.onHeaderDragStop();
-            if ($scope.configGroups.indexOf(self.colToMove.col) == -1) {
-                groupContainer = $(event.target).closest('.ngGroupElement'); // Get the scope from the header.
-				if (groupContainer.context.className == 'ngGroupPanel' || groupContainer.context.className == 'ngGroupPanelDescription') {
+        } else {
+            if (self.colToMove && $scope.configGroups.indexOf(self.colToMove.col) == -1) {
+                groupContainer = ng.utils.closest(event.target, 'ngGroupPanel'); // Get the scope from the header.
+				if (groupContainer) {
 					$scope.groupBy(self.colToMove.col);
 				} else {
 				    groupScope = angular.element(groupContainer).scope();
@@ -122,7 +116,7 @@
     //Header functions
     self.onHeaderMouseDown = function (event) {
         // Get the closest header container from where we clicked.
-        var headerContainer = $(event.target).closest('.ngHeaderSortColumn');
+        var headerContainer = ng.utils.closest(event.target, 'ngHeaderSortColumn');
         // Get the scope from the header container
         var headerScope = angular.element(headerContainer).scope();
         if (headerScope) {
@@ -130,23 +124,10 @@
             self.colToMove = { header: headerContainer, col: headerScope.col };
         }
     }; 
-    self.onHeaderDragStart = function () {
-        // color the header so we know what we are moving
-        if (self.colToMove) {
-            self.colToMove.header.css('background-color', 'rgb(255, 255, 204)');
-        }
-    };   
-    self.onHeaderDragStop = function () {
-        // Set the column to move header color back to normal
-        if (self.colToMove) {
-            self.colToMove.header.css('background-color', 'rgb(234, 234, 234)');
-        }
-    };
     self.onHeaderDrop = function (event) {
         if (!self.colToMove) return;
-        self.onHeaderDragStop();
         // Get the closest header to where we dropped
-        var headerContainer = $(event.target).closest('.ngHeaderSortColumn');
+        var headerContainer = ng.utils.closest(event.target, 'ngHeaderSortColumn');
         // Get the scope from the header.
         var headerScope = angular.element(headerContainer).scope();
         if (headerScope) {
@@ -165,7 +146,7 @@
     // Row functions
     self.onRowMouseDown = function (event) {
         // Get the closest row element from where we clicked.
-        var targetRow = $(event.target).closest('.ngRow');
+        var targetRow = ng.utils.closest(event.target, 'ngRow');
         // Get the scope from the row element
         var rowScope = angular.element(targetRow).scope();
         if (rowScope) {
@@ -177,7 +158,7 @@
     };
     self.onRowDrop = function (event) {
         // Get the closest row to where we dropped
-        var targetRow = $(event.target).closest('.ngRow');
+        var targetRow = ng.utils.closest(event.target, 'ngRow');
         // Get the scope from the row element.
         var rowScope = angular.element(targetRow).scope();
         if (rowScope) {
